@@ -1,6 +1,6 @@
 # Mi Scanner Enhanced
 
-An LSPosed module that fixes two annoyances in Xiaomi Scanner.
+An LSPosed module that fixes several annoyances in Xiaomi Scanner.
 
 [中文说明](README_zh.md)
 
@@ -9,6 +9,16 @@ An LSPosed module that fixes two annoyances in Xiaomi Scanner.
 **Text scan results blocked by censorship.** Xiaomi Scanner sends text scan results to a remote server for content review. If the content is flagged, or the request fails, or there is no network, the result is hidden and removed from scan history. This module removes the server check so results are shown directly.
 
 **Location permission required for WiFi QR codes.** The app requires location permission before connecting to a WiFi network from a scanned QR code. The actual connection does not need it. This module skips the location check while leaving other permissions like camera untouched.
+
+**FIDO QR codes not handled.** The scanner classifies FIDO cross-device authentication QR codes (`FIDO:/...`) as plain text and sends them through content review, which blocks or hides the result. The scanner does contain FIDO handling code, but it is hardcoded to a single Xiaomi package (`com.fido.asm`) and is unreachable from the text classification path. This module intercepts `FIDO:` URIs in the text result flow and dispatches them as a standard `org.fidoalliance.intent.QRCodeAuthenticator` intent without a package restriction, so any registered FIDO authenticator (Google Password Manager, 1Password, Xiaomi's Mi FIDO, etc.) can respond.
+
+**Warning dialog before opening URLs.** Scanning a web URL shows a security warning dialog that requires confirmation before the URL can be opened. This module skips the dialog and opens the URL directly.
+
+**Scan content uploaded to Xiaomi.** On Chinese builds, the app Base64-encodes the content of scanned codes and posts it to a Xiaomi server. This module drops the upload.
+
+**Links diverted to Alipay by legacy health code rules.** The scanner still carries pandemic-era health code patterns, and several of them match entire government domains, so ordinary links on those sites open in Alipay instead of the browser. This module disables those rules so such links follow the normal URL flow.
+
+**Some scan results silently discarded.** Market links (`market://`), WeChat Pay codes (`wxp:`) and Paytm codes that no app claims produce no result at all. This module shows them as text so they can at least be read and copied.
 
 ## Installation
 
